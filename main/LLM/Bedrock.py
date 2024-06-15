@@ -90,6 +90,14 @@ class Bedrock(LLMBase):
                     While you generating about relations between entities. Use entity properties and type to generate precise relations.
                     Do not skip it with like CREATE (broncos)-[:DEFEATED]->(panthers). Generate queries like
                     MATCH (broncos:Team [name: 'Denver Broncos']),(panthers:Teams [name: 'Carolina Panthers']) CREATE (broncos)-[:DEFEATED]->(panthers)
+                    Make relation generation as precise as possible. Use all properties and types to generate relation.
+                    Because If any missunderstanding in queries cost us millions of unnecessary relations.
+                </Note>
+                <Note>
+                    You can generate new entities for classify the content.
+                    <Example>
+                        If the content is related about singers, you can generate an entity named 'Singers' and generate relatons with it.
+                    </Example>
                 </Note>
             </Notes>
             <Output>

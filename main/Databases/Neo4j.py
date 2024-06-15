@@ -32,6 +32,14 @@ class Neo4jDatabase(DatabaseBase):
         result = tx.run(query)
         return result
 
+    def flush_all(self):
+        with self.driver.session() as session:
+            session.write_transaction(self._flush_all)
+
+    @staticmethod
+    def _flush_all(tx):
+        tx.run("MATCH (n) DETACH DELETE n")
+
     def disconnect(self) -> None:
         if self.driver is not None:
             self.driver.close()

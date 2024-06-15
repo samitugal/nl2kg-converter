@@ -36,13 +36,15 @@ def generate_response():
         response = llm.generate_kg_query(content.all_contexts)
         database = GraphDatabase.new_instance_from_config(config=database_config)
         ##
+        database.flush_all()
         for query in response.queries:
             print(query)
             database.execute_query(query= query)
         
         return response
+
     # except Exception as e:
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

@@ -12,3 +12,7 @@ class DatabaseBase(ABC):
     @abstractmethod
     def disconnect(self):
         pass
+
+    @abstractmethod
+    def flush_all(self):
+        pass

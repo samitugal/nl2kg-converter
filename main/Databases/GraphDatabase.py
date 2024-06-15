@@ -21,3 +21,6 @@ class GraphDatabase(DatabaseBase):
   
     def disconnect(self):
         self.database.disconnect()
+
+    def flush_all(self):
+        self.database.flush_all()
