@@ -80,9 +80,11 @@ class Bedrock(LLMBase):
                     This genereated queries will executed in Neo4j graph database so you must be careful about syntax and punctuation.
                     <Example>
                         "CREATE (stadium:Stadium name: 'Levi's Stadium', location: 'Santa Clara, California')"
+                        "CREATE (childrensMemorialHealthInstitute:Hospital [name: 'Children's Memorial Health Institute', recognition: 'highest-reference hospital in all of Poland'])"
                         <Description>
                             This example is wrong because when you seperate Levi's there is a syntax error occured.
-                            Be careful about punctuation. 
+                            Or 'Children's Memorial Health Institute' is not a valid entity name because there are three single quotes.
+                            It causes error in syntax. Be careful about punctuation. 
                         </Description>
                     </Example>
                 </Note>
@@ -98,6 +100,15 @@ class Bedrock(LLMBase):
                     <Example>
                         If the content is related about singers, you can generate an entity named 'Singers' and generate relatons with it.
                     </Example>
+                </Note>
+                <Note>
+                    Do not use multiple generation in one query. Generate this queries one by one.
+                </Note>
+                <Note>
+                    Be sure property value definitions must be between double quotes.
+                </Note>
+                <Note>
+                    Generate at least one relation for each entity.
                 </Note>
             </Notes>
             <Output>
@@ -116,7 +127,15 @@ class Bedrock(LLMBase):
                                             partial_variables={"format_instructions": output_parser.get_format_instructions() })
         chain = knowledge_graph_template | self.client | output_parser
         response: QueryGenerationOutputParser = chain.invoke(input={"content": content})
-        print(response)
-        return response
+        return self._clean_response(response)
+
+    def _clean_response(self, response_list: CypherQueryList):
+        translator = str.maketrans('', '', string.punctuation)
+
+        for query in response_list.queries:
+            query = query.translate(translator)
+
+        return response_list    
+
 
     

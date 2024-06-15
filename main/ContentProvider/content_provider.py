@@ -2,6 +2,7 @@ import os
 import zipfile
 import json
 import random
+import string
 from typing import List, Tuple
 from dataclasses import dataclass
 from dotenv import load_dotenv
@@ -50,8 +51,6 @@ class ContentProvider:
                 })
         
         all_contexts = all_contexts.strip()
+        translator = str.maketrans('', '', string.punctuation)
+        all_contexts = all_contexts.translate(translator)
         return all_contexts, all_qas
-
-if __name__ == "__main__":
-    cp = ContentProvider()
-    print(cp.all_contexts)
