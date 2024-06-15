@@ -1,0 +1,8 @@
+gdb:
+  tag: NEO4J
+neo4j:
+  uri: neo4j+s://f231de63.databases.neo4j.io
+  user: neo4j
+  password: wEMYZQQoe7xFYKFsrhBUuHEQ8l10sclDo7aSZryPRzY
+  encrypted: true
+  trust: "TRUST_ALL_CERTIFICATES"
