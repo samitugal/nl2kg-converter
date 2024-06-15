@@ -1,17 +1,18 @@
-from Databases.config_defs import GDBTag, MainConfig
+from .config_defs import GDBTag, MainConfig
 from .DatabaseBase import DatabaseBase
 
 class GraphDatabase(DatabaseBase):
     def __init__(self, config: MainConfig, database: DatabaseBase):
         super().__init__(config)
+        self.database = database
 
     @staticmethod
     def new_instance_from_config(config: MainConfig) -> "GraphDatabase": 
-        from .Neo4j import Neo4j
+        from .Neo4j import Neo4jDatabase
 
-        match config.llm.llm_tag:
+        match config.gdb.tag:
             case GDBTag.NEO4J:
-                return Pipeline(config, Neo4j(config))
+                return GraphDatabase(config, Neo4jDatabase(config))
             case _:
                 raise ValueError("Invalid LLM tag")
 

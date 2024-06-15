@@ -82,6 +82,23 @@ class OpenAI(LLMBase):
             <Content>
                 Content: {content}
             </Content>
+            <Notes>
+                <Note>
+                    This genereated queries will executed in Neo4j graph database so you must be careful about syntax and punctuation.
+                    <Example>
+                        "CREATE (stadium:Stadium name: 'Levi's Stadium', location: 'Santa Clara, California')"
+                        <Description>
+                            This example is wrong because when you seperate Levi's there is a syntax error occured.
+                            Be careful about punctuation. 
+                        </Description>
+                    </Example>
+                </Note>
+                <Note>,
+                    While you generating about relations between entities. Use entity properties and type to generate precise relations.
+                    Do not skip it with like CREATE (broncos)-[:DEFEATED]->(panthers). Generate queries like
+                    MATCH (broncos:Team [name: 'Denver Broncos']),(panthers:Teams [name: 'Carolina Panthers']) CREATE (broncos)-[:DEFEATED]->(panthers)
+                </Note>
+            </Notes>
             <Output>
                 <<OUTPUT (must include ```json at the start of the response)>>
                 <<OUTPUT (must end with ```)>>

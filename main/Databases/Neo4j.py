@@ -30,7 +30,7 @@ class Neo4jDatabase(DatabaseBase):
     @staticmethod
     def _execute_query(tx, query: str):
         result = tx.run(query)
-        return result.single()[0]
+        return result
 
     def disconnect(self) -> None:
         if self.driver is not None:
