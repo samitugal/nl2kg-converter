@@ -1,6 +1,11 @@
+import warnings
+
 from langchain_openai import ChatOpenAI
 from .LLMBase import LLMBase
 from .config_defs import LLMTag, LLMMainConfig
+from .callbacks import LLMCallbacks
+
+warnings.filterwarnings("ignore", category=DeprecationWarning, module='langchain')
 
 class OpenAI(LLMBase):
     def __init__(self, config):
@@ -14,4 +19,4 @@ class OpenAI(LLMBase):
             model_kwargs = {"response_format": {"type": "json_object"}}
         else:
             model_kwargs = {}
-        self.client = ChatOpenAI(model=config.openai.model_name, temperature=config.llm.temperature, model_kwargs=model_kwargs)
+        self.client = ChatOpenAI(model=config.openai.model_name, temperature=config.llm.temperature, model_kwargs=model_kwargs, callbacks = [LLMCallbacks()])

@@ -1,5 +1,5 @@
 import string
-from typing import TypeVar
+from typing import TypeVar, List, Dict, Any
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from langchain.prompts.prompt import PromptTemplate
@@ -104,7 +104,8 @@ class LLMBase(LLMAbstractBase):
                                             template=knowledge_graph_template, 
                                             partial_variables={"format_instructions": output_parser.get_format_instructions() })
         chain = knowledge_graph_template | self.client | output_parser
-        response: QueryGenerationOutputParser = chain.invoke(input={"content": content})
+        response: QueryGenerationOutputParser = chain.invoke(
+            input={"content": self.translate(content).translated_content})
         return self._clean_response(response)
 
     def _clean_response(self, response_list: CypherQueryList):
@@ -114,3 +115,10 @@ class LLMBase(LLMAbstractBase):
             query = query.translate(translator)
 
         return response_list
+
+    def detect_target_node(self, content: str, graphdb_nodes: List[Dict[str, Any]]) -> str:
+        target_node_template = """
+        "
+        """
+
+    

@@ -2,6 +2,7 @@ from .config_defs import MainConfig
 from .DatabaseBase import DatabaseBase
 
 from neo4j import GraphDatabase
+from typing import Any, List, Dict
 from dotenv import load_dotenv
 
 class Neo4jDatabase(DatabaseBase):
@@ -40,6 +41,20 @@ class Neo4jDatabase(DatabaseBase):
     def _flush_all(tx):
         tx.run("MATCH (n) DETACH DELETE n")
 
+    def list_nodes_and_properties(self) -> List[Dict[str, Any]]:
+        nodes_list = []
+        with self.driver.session() as session:
+            result = session.run("MATCH (n) RETURN n, labels(n) AS labels, keys(n) AS keys, properties(n) AS properties")
+            for record in result:
+                node = {
+                    "id": record["n"].element_id,
+                    "labels": record["labels"],
+                    "keys": record["keys"],
+                    "properties": record["properties"]
+                }
+                nodes_list.append(node)
+        return nodes_list
+
     def disconnect(self) -> None:
         if self.driver is not None:
             self.driver.close()
@@ -47,5 +62,5 @@ class Neo4jDatabase(DatabaseBase):
 if __name__ == "__main__":
     config = MainConfig.from_file("configs/GraphDatabase/neo4j.yaml")
     db = Neo4jDatabase(config)
+    print(db.list_nodes_and_properties())
     db.disconnect()
-    print("Done")

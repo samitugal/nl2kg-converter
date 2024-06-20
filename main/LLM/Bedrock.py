@@ -1,7 +1,11 @@
+import warnings
 import boto3
-from langchain_community.llms import Bedrock as ChatBedrock
+from langchain_community.chat_models import BedrockChat
 from .LLMBase import LLMBase
 from .config_defs import LLMTag, LLMMainConfig
+from .callbacks import LLMCallbacks
+
+warnings.filterwarnings("ignore", category=DeprecationWarning, module='langchain')
 
 class Bedrock(LLMBase):
     def __init__(self, config):
@@ -12,4 +16,4 @@ class Bedrock(LLMBase):
             raise ValueError("BedrockPipeline requires a BedrockConfig")
 
         bedrock = boto3.client(service_name='bedrock-runtime', region_name=config.bedrock.region_name)
-        self.client = ChatBedrock(model_id=config.bedrock.model_id, client=bedrock, model_kwargs={"temperature": config.llm.temperature})
+        self.client = BedrockChat(model_id=config.bedrock.model_id, client=bedrock, model_kwargs={"temperature": config.llm.temperature}, callbacks = [LLMCallbacks()])
