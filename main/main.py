@@ -28,25 +28,15 @@ print(f"Using config from {envvars.GRAPHDATABASE_CONNECTION_PATH}")
 llm_config: LLMMainConfig = LLMMainConfig.from_file(envvars.LLM_CONFIG_PATH)
 print(f"Using config from {envvars.LLM_CONFIG_PATH}")
 
-@app.post("/generate_knowledge_graph", status_code=status.HTTP_200_OK)
-def generate_response():
-    try:
-        content = ContentProvider()
-        llm = Pipeline.new_instance_from_config(config=llm_config)
-        response = llm.generate_kg_query(content.all_contexts)
-        database = GraphDatabase.new_instance_from_config(config=database_config)
-        ##
-        database.flush_all()
-        for query in response.queries:
-            print(query)
-            database.execute_query(query= query)
-        
-        return response
+content = ContentProvider()
+llm = Pipeline.new_instance_from_config(config=llm_config)
+#response = llm.generate_kg_query(content.all_contexts)
+database = GraphDatabase.new_instance_from_config(config=database_config)
+target_node = llm.detect_target_node(content= content.all_qas[0]["question"], graphdb_nodes= database.list_nodes_and_properties())
 
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main.server:app", host="0.0.0.0", port=8000, reload=True)
-
+print(content.all_qas[0]["question"])
+print("")
+print(database.list_nodes_and_properties())
+print("")
+print(target_node)
+database.disconnect()

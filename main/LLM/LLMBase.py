@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from langchain.prompts.prompt import PromptTemplate
 
 from .LLMAbstractBase import LLMAbstractBase
-from ..output_models import CypherQueryList, TranslateModelOutput
-from ..output_parsers import TranslateModelOutputParser, QueryGenerationOutputParser
+from ..output_models import CypherQueryList, TranslateModelOutput, NodeDetectionModelOutput
+from ..output_parsers import TranslateModelOutputParser, QueryGenerationOutputParser, NodeDetectionOutputParser
 
 U = TypeVar("U", bound=BaseModel)
 
@@ -116,9 +116,36 @@ class LLMBase(LLMAbstractBase):
 
         return response_list
 
-    def detect_target_node(self, content: str, graphdb_nodes: List[Dict[str, Any]]) -> str:
+    def detect_target_node(self, content: str, graphdb_nodes: List[Dict[str, Any]]) -> NodeDetectionModelOutput:
         target_node_template = """
-        "
+        <InstructionStructure>
+            <PrimaryTask>
+                The main goal is to identify the node related to the question asked by the user within the <Content> tag. 
+                For this, you can find a dictionary containing node information within the <Context> tag. 
+                Return the id information of the related node as the answer.
+            </PrimaryTask>
+            <Content>
+                Content: {content}
+            </Content>
+            <Context>
+                {context}
+            </Context>
+            <Output>
+                <<OUTPUT (must include ```json at the start of the response)>>
+                <<OUTPUT (must end with ```)>>
+            </Output>
+            <FormatInstructions>
+                {format_instructions}
+            </FormatInstructions>
+        </InstructionStructure>
         """
+        
+        output_parser = NodeDetectionOutputParser().node_detection_parser
+        target_node_template = PromptTemplate(input_variables=["content", "context"], 
+                                            template=target_node_template, 
+                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
 
+        chain = target_node_template | self.client | output_parser
+        response: NodeDetectionOutputParser = chain.invoke(input={"content": content, "context": graphdb_nodes})
+        return response                                    
     

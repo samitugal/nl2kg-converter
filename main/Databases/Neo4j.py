@@ -1,9 +1,17 @@
+import warnings
+
 from .config_defs import MainConfig
 from .DatabaseBase import DatabaseBase
 
 from neo4j import GraphDatabase
 from typing import Any, List, Dict
 from dotenv import load_dotenv
+
+from typing import TypeAlias
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+QueryOutputDict: TypeAlias = List[Dict[str, Any]]
 
 class Neo4jDatabase(DatabaseBase):
     instance = None
@@ -41,7 +49,7 @@ class Neo4jDatabase(DatabaseBase):
     def _flush_all(tx):
         tx.run("MATCH (n) DETACH DELETE n")
 
-    def list_nodes_and_properties(self) -> List[Dict[str, Any]]:
+    def list_nodes_and_properties(self) -> QueryOutputDict:
         nodes_list = []
         with self.driver.session() as session:
             result = session.run("MATCH (n) RETURN n, labels(n) AS labels, keys(n) AS keys, properties(n) AS properties")
@@ -53,6 +61,28 @@ class Neo4jDatabase(DatabaseBase):
                     "properties": record["properties"]
                 }
                 nodes_list.append(node)
+        self.disconnect()
+        return nodes_list
+
+    def list_n_degree_nodes(self, node_id: str, degree_count: int) -> QueryOutputDict:
+        nodes_list = []
+        with self.driver.session() as session:
+            result = session.run(f"""
+            MATCH (n)-[*{degree_count}]-(m)
+            WHERE id(n) = {node_id}
+            RETURN m
+            """)
+            
+            for record in result:
+                node = record["m"]
+                node_data = {
+                    "id": node.element_id,
+                    "labels": list(node.labels),
+                    "properties": dict(node)
+                }
+                nodes_list.append(node_data)
+        
+        self.disconnect()
         return nodes_list
 
     def disconnect(self) -> None:
@@ -62,5 +92,4 @@ class Neo4jDatabase(DatabaseBase):
 if __name__ == "__main__":
     config = MainConfig.from_file("configs/GraphDatabase/neo4j.yaml")
     db = Neo4jDatabase(config)
-    print(db.list_nodes_and_properties())
     db.disconnect()

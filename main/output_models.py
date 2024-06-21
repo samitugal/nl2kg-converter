@@ -13,6 +13,9 @@ class TranslateModelOutput(BaseModel):
             "translated_content": self.translated_content,
         }
 
+class NodeDetectionModelOutput(BaseModel):
+    node_id: str = Field(description= "Node id information which related with question")
+
 @dataclass
 class Answer:
     answer_start: int

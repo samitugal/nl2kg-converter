@@ -26,7 +26,5 @@ class Pipeline:
     def translate(self, content: str) -> TranslateModelOutput:
         return self.llm.translate(content)
 
-if __name__ == "__main__":
-    config = LLMMainConfig.from_file("configs/LLM/bedrock.yaml")
-    pipeline = Pipeline.new_instance_from_config(config)
-    print(pipeline.translate("Merhaba Dünya").translated_content)
+    def detect_target_node(self, content: str, graphdb_nodes: list) -> str:
+        return self.llm.detect_target_node(content, graphdb_nodes)
