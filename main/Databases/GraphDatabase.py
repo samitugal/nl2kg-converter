@@ -23,6 +23,9 @@ class GraphDatabase(DatabaseBase):
 
     def list_nodes_and_properties(self) -> List[Dict[str, Any]]:
         return self.database.list_nodes_and_properties()
+
+    def list_n_degree_nodes(self, node_id: str, degree_count: int) -> List[Dict[str, Any]]:
+        return self.database.list_n_degree_nodes(node_id, degree_count)
   
     def disconnect(self):
         self.database.disconnect()

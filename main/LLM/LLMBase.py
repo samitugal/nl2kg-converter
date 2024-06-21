@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from langchain.prompts.prompt import PromptTemplate
 
 from .LLMAbstractBase import LLMAbstractBase
-from ..output_models import CypherQueryList, TranslateModelOutput, NodeDetectionModelOutput
-from ..output_parsers import TranslateModelOutputParser, QueryGenerationOutputParser, NodeDetectionOutputParser
+from ..output_models import *
+from ..output_parsers import *
 
 U = TypeVar("U", bound=BaseModel)
 
@@ -147,5 +147,38 @@ class LLMBase(LLMAbstractBase):
 
         chain = target_node_template | self.client | output_parser
         response: NodeDetectionOutputParser = chain.invoke(input={"content": content, "context": graphdb_nodes})
-        return response                                    
+        return response
+
+    def QA_Model(self, question: str, related_nodes: List[Dict[str, Any]]) -> QAModelOutput:
+        qa_model_template = """
+        <InstructionStructure>
+            <PrimaryTask>
+                The main goal is to provide the answer to the question asked by the user within the <Content> tag. 
+                For this, you can find other nodes related to the user's question within the <Context> tag. 
+                If the provided node information is not sufficient, return false for the related boolean field in the output. 
+                If you are not sure about the answer, there is no need to provide an answer. Just return the mandatory field in the output.
+            </PrimaryTask>
+            <Content>
+                Content: {content}
+            </Content>
+            <Context>
+                {context}
+            </Context>
+            <Output>
+                <<OUTPUT (must include ```json at the start of the response)>>
+                <<OUTPUT (must end with ```)>>
+            </Output>
+            <FormatInstructions>
+                {format_instructions}
+            </FormatInstructions>
+        </InstructionStructure>
+        """
+        output_parser = QAModelOutputParser().qa_model
+        target_node_template = PromptTemplate(input_variables=["content", "context"], 
+                                            template=qa_model_template, 
+                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
+
+        chain = target_node_template | self.client | output_parser
+        response: QAModelOutputParser = chain.invoke(input={"content": question, "context": related_nodes})
+        return response
     

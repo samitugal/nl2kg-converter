@@ -30,13 +30,32 @@ print(f"Using config from {envvars.LLM_CONFIG_PATH}")
 
 content = ContentProvider()
 llm = Pipeline.new_instance_from_config(config=llm_config)
-#response = llm.generate_kg_query(content.all_contexts)
 database = GraphDatabase.new_instance_from_config(config=database_config)
-target_node = llm.detect_target_node(content= content.all_qas[0]["question"], graphdb_nodes= database.list_nodes_and_properties())
 
-print(content.all_qas[0]["question"])
-print("")
-print(database.list_nodes_and_properties())
-print("")
-print(target_node)
-database.disconnect()
+def generate_knowledge_graph():
+    response = llm.generate_kg_query(content.all_contexts)
+    database = GraphDatabase.new_instance_from_config(config=database_config)
+    database.flush_all()
+    for query in response.queries:
+        print(query)
+        database.execute_query(query= query)
+    
+    return response
+
+def answer_questions():
+    DEGREE = 1
+
+    question = content.all_qas[0]["question"]
+    answers = content.all_qas[0]["answers"]
+
+    target_node_id = llm.detect_target_node(content= content.all_contexts, graphdb_nodes = database.list_nodes_and_properties()).node_id.split(':')[-1]
+    related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
+
+    res = llm.QA_Model(question= question, related_nodes= related_nodes)
+    while not res.success:
+        related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
+        res = llm.QA_Model(question= question, related_nodes= related_nodes)
+    
+    return res
+
+answer_questions()

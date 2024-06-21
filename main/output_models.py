@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
 class CypherQueryList(BaseModel):
@@ -15,6 +15,10 @@ class TranslateModelOutput(BaseModel):
 
 class NodeDetectionModelOutput(BaseModel):
     node_id: str = Field(description= "Node id information which related with question")
+
+class QAModelOutput(BaseModel):
+    success: bool = Field(description="Indicates if the model can provide an answer")
+    answer: Optional[str] = Field(None, description="The model's answer to the question, if available")
 
 @dataclass
 class Answer:

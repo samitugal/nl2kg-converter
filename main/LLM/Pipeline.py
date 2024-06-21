@@ -1,6 +1,8 @@
 from .config_defs import LLMMainConfig, LLMTag
 from .LLMBase import LLMBase
-from ..output_models import CypherQueryList, TranslateModelOutput
+from ..output_models import CypherQueryList, TranslateModelOutput, QAModelOutput, NodeDetectionModelOutput
+
+from typing import List, Dict, Any
 
 class Pipeline:
     def __init__(self, config: LLMMainConfig, llm: LLMBase):
@@ -26,5 +28,8 @@ class Pipeline:
     def translate(self, content: str) -> TranslateModelOutput:
         return self.llm.translate(content)
 
-    def detect_target_node(self, content: str, graphdb_nodes: list) -> str:
+    def detect_target_node(self, content: str, graphdb_nodes: list) -> NodeDetectionModelOutput:
         return self.llm.detect_target_node(content, graphdb_nodes)
+
+    def QA_Model(self, question: str, related_nodes: List[Dict[str, Any]]) -> QAModelOutput:
+        return self.llm.QA_Model(question, related_nodes)
