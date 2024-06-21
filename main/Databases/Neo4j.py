@@ -69,7 +69,7 @@ class Neo4jDatabase(DatabaseBase):
         with self.driver.session() as session:
             result = session.run(f"""
             MATCH (n)-[*{degree_count}]-(m)
-            WHERE id(n) = {node_id}
+            WHERE elementId(n) = "{node_id}"
             RETURN m
             """)
             

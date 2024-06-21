@@ -48,11 +48,13 @@ def answer_questions():
     question = content.all_qas[0]["question"]
     answers = content.all_qas[0]["answers"]
 
-    target_node_id = llm.detect_target_node(content= content.all_contexts, graphdb_nodes = database.list_nodes_and_properties()).node_id.split(':')[-1]
+    target_node_id = llm.detect_target_node(content= content.all_contexts, graphdb_nodes = database.list_nodes_and_properties()).node_id
     related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
-
+    print(related_nodes)
     res = llm.QA_Model(question= question, related_nodes= related_nodes)
+    print(res)
     while not res.success:
+        DEGREE += 1
         related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
         res = llm.QA_Model(question= question, related_nodes= related_nodes)
     

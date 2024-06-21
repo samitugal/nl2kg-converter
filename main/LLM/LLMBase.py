@@ -15,6 +15,14 @@ class LLMBase(LLMAbstractBase):
         self.config = config
         load_dotenv()
 
+    def _create_chain(self, template: str, input_variables: List[str], partial_variables: Dict[str, Any], parser):
+        prompt_template = PromptTemplate(
+            input_variables=input_variables, 
+            template=template, 
+            partial_variables=partial_variables
+        )
+        return prompt_template | self.client | parser
+
     def translate(self, content: str) -> TranslateModelOutput:
         translate_template = """
         <InstructionStructure>
@@ -33,12 +41,8 @@ class LLMBase(LLMAbstractBase):
             </FormatInstructions>
         </InstructionStructure>
         """
-        
         output_parser = TranslateModelOutputParser().translate_parser
-        translate_template = PromptTemplate(input_variables=["content"], 
-                                            template=translate_template, 
-                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
-        chain = translate_template | self.client | output_parser
+        chain = self._create_chain(translate_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
         response: TranslateModelOutputParser = chain.invoke(input={"content": content})
         return response 
 
@@ -98,22 +102,15 @@ class LLMBase(LLMAbstractBase):
             </FormatInstructions>
         </InstructionStructure>
         """
-
         output_parser = QueryGenerationOutputParser().query_generator_parser
-        knowledge_graph_template = PromptTemplate(input_variables=["content"], 
-                                            template=knowledge_graph_template, 
-                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
-        chain = knowledge_graph_template | self.client | output_parser
-        response: QueryGenerationOutputParser = chain.invoke(
-            input={"content": self.translate(content).translated_content})
+        chain = self._create_chain(knowledge_graph_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        response: QueryGenerationOutputParser = chain.invoke(input={"content": self.translate(content).translated_content})
         return self._clean_response(response)
 
     def _clean_response(self, response_list: CypherQueryList):
         translator = str.maketrans('', '', string.punctuation)
-
         for query in response_list.queries:
             query = query.translate(translator)
-
         return response_list
 
     def detect_target_node(self, content: str, graphdb_nodes: List[Dict[str, Any]]) -> NodeDetectionModelOutput:
@@ -139,13 +136,8 @@ class LLMBase(LLMAbstractBase):
             </FormatInstructions>
         </InstructionStructure>
         """
-        
         output_parser = NodeDetectionOutputParser().node_detection_parser
-        target_node_template = PromptTemplate(input_variables=["content", "context"], 
-                                            template=target_node_template, 
-                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
-
-        chain = target_node_template | self.client | output_parser
+        chain = self._create_chain(target_node_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
         response: NodeDetectionOutputParser = chain.invoke(input={"content": content, "context": graphdb_nodes})
         return response
 
@@ -174,11 +166,6 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = QAModelOutputParser().qa_model
-        target_node_template = PromptTemplate(input_variables=["content", "context"], 
-                                            template=qa_model_template, 
-                                            partial_variables={"format_instructions": output_parser.get_format_instructions() })
-
-        chain = target_node_template | self.client | output_parser
+        chain = self._create_chain(qa_model_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
         response: QAModelOutputParser = chain.invoke(input={"content": question, "context": related_nodes})
         return response
-    
