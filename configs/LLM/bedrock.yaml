@@ -3,4 +3,4 @@ llm:
   temperature: 0.0
 bedrock:
   region_name: us-west-2
-  model_id: anthropic.claude-3-opus-20240229-v1:0
+  model_id: claude-3-5-sonnet-20240620
