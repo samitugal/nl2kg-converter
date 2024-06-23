@@ -51,10 +51,10 @@ def answer_questions(question: str, answers: list[str]):
 
     target_node_id = llm.detect_target_node(content=content.all_contexts, graphdb_nodes=database.list_nodes_and_properties()).node_id
     related_nodes = database.list_n_degree_nodes(node_id=target_node_id, degree_count=DEGREE)
-    res = llm.QA_Model(question=question, related_nodes=related_nodes)
+    res = llm.QA_Model(question=question["question"], related_nodes=related_nodes)
     
     previous_related_nodes = None
-
+    print(question["question"])
     while not res.success:
         if related_nodes == previous_related_nodes:
             res.success = False
@@ -68,7 +68,7 @@ def answer_questions(question: str, answers: list[str]):
     return res
 
 def llm_based_kg_qa():
-    generate_knowledge_graph()
+    #generate_knowledge_graph()
 
     random_questions = random.sample(content.all_qas, 100)
     
@@ -84,7 +84,6 @@ def llm_based_kg_qa():
             "ExpectedResponses": content_answers,
             "Result": result.result
         })
-        print(content_question)
         print(result.result)
 
     df = pd.DataFrame(results)
