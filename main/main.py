@@ -88,6 +88,9 @@ def llm_based_kg_qa():
         print(result.result)
 
     df = pd.DataFrame(results)
-    df.to_csv("/mnt/data/results.csv", index=False)
+    
+    save_dir = "./results"
+    os.makedirs(save_dir, exist_ok=True)
+    df.to_csv(os.path.join(save_dir, "results.csv"), index=False)
         
 llm_based_kg_qa()
