@@ -92,6 +92,9 @@ class LLMBase(LLMAbstractBase):
                 <Note>
                     Generate at least one relation for each entity.
                 </Note>
+                <Note>
+                    Detail the properties of the nodes as much as possible.
+                </Note>
             </Notes>
             <Output>
                 <<OUTPUT (must include ```json at the start of the response)>>

@@ -1,6 +1,8 @@
 import pandas as pd
+import random
 
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
@@ -67,9 +69,11 @@ def answer_questions(question: str, answers: list[str]):
 
 def llm_based_kg_qa():
     generate_knowledge_graph()
+
+    random_questions = random.sample(content.all_qas, 100)
     
     results = []
-    for question in content.all_qas:
+    for question in tqdm(random_questions, desc="Processing questions"):
         content_question = question["question"]
         content_answers = question["answers"]
         model_answer = answer_questions(question= question, answers= content_answers).answer

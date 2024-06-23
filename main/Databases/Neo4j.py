@@ -68,18 +68,31 @@ class Neo4jDatabase(DatabaseBase):
         nodes_list = []
         with self.driver.session() as session:
             result = session.run(f"""
-            MATCH (n)-[*{degree_count}]-(m)
+            MATCH (n)-[r*1..{degree_count}]-(m)
             WHERE elementId(n) = "{node_id}"
-            RETURN m
+            RETURN m, r
             """)
             
             for record in result:
                 node = record["m"]
+                relationships = record["r"]
+                
                 node_data = {
                     "id": node.element_id,
                     "labels": list(node.labels),
-                    "properties": dict(node)
+                    "properties": dict(node),
+                    "relationships": []
                 }
+                
+                for relationship in relationships:
+                    relationship_data = {
+                        "type": relationship.type,
+                        "properties": dict(relationship),
+                        "start_node": relationship.start_node.element_id,
+                        "end_node": relationship.end_node.element_id
+                    }
+                    node_data["relationships"].append(relationship_data)
+                
                 nodes_list.append(node_data)
         
         self.disconnect()
