@@ -76,15 +76,22 @@ def llm_based_kg_qa():
     for question in tqdm(random_questions, desc="Processing questions"):
         content_question = question["question"]
         content_answers = question["answers"]
-        model_answer = answer_questions(question= question, answers= content_answers).answer
-        result = llm.validate_answer(content_answers, model_answer)
-        results.append({
-            "Question": content_question,
-            "ModelResponse": model_answer,
-            "ExpectedResponses": content_answers,
-            "Result": result.result
-        })
-        print(result.result)
+           
+        if len(content_question) > 1000:
+            content_question = content_question[:1000]
+        
+        try:
+            model_answer = answer_questions(question=question, answers=content_answers).answer
+            result = llm.validate_answer(content_answers, model_answer)
+            results.append({
+                "Question": content_question,
+                "ModelResponse": model_answer,
+                "ExpectedResponses": content_answers,
+                "Result": result.result
+            })
+            print(result.result)
+        except Exception as e:
+            print(f"Error processing question: {e}")
 
     df = pd.DataFrame(results)
     
