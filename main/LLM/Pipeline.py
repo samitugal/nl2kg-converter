@@ -1,6 +1,6 @@
 from .config_defs import LLMMainConfig, LLMTag
 from .LLMBase import LLMBase
-from ..output_models import CypherQueryList, TranslateModelOutput, QAModelOutput, NodeDetectionModelOutput
+from ..output_models import *
 
 from typing import List, Dict, Any
 
@@ -33,3 +33,6 @@ class Pipeline:
 
     def QA_Model(self, question: str, related_nodes: List[Dict[str, Any]]) -> QAModelOutput:
         return self.llm.QA_Model(question, related_nodes)
+
+    def validate_answer(self, answers: list[str], model_answer: str) -> ValidationModelOutput:
+        return self.llm.validate_answer(answers, model_answer)

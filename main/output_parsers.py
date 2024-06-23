@@ -1,4 +1,4 @@
-from .output_models import TranslateModelOutput, CypherQueryList, NodeDetectionModelOutput, QAModelOutput
+from .output_models import TranslateModelOutput, CypherQueryList, NodeDetectionModelOutput, QAModelOutput, ValidationModelOutput
 from langchain.output_parsers import PydanticOutputParser
 
 class TranslateModelOutputParser:
@@ -16,3 +16,7 @@ class NodeDetectionOutputParser:
 class QAModelOutputParser:
     def __init__(self):
         self.qa_model = PydanticOutputParser(pydantic_object = QAModelOutput)
+
+class ValidationModelOutputParser:
+    def __init__(self):
+        self.validate_model = PydanticOutputParser(pydantic_object = ValidationModelOutput)

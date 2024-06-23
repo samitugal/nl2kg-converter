@@ -20,6 +20,9 @@ class QAModelOutput(BaseModel):
     success: bool = Field(description="Indicates if the model can provide an answer")
     answer: Optional[str] = Field(None, description="The model's answer to the question, if available")
 
+class ValidationModelOutput(BaseModel):
+    result: bool = Field("Is model response is  true or false indicator")
+
 @dataclass
 class Answer:
     answer_start: int

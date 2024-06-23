@@ -169,3 +169,30 @@ class LLMBase(LLMAbstractBase):
         chain = self._create_chain(qa_model_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
         response: QAModelOutputParser = chain.invoke(input={"content": question, "context": related_nodes})
         return response
+
+    def validate_answer(self, answers: list[str], model_answer: str) -> ValidationModelOutput:
+        validation_model_template = """
+        <InstructionStructure>
+            <PrimaryTask>
+                The main objective is to compare the output of an LLM model with the expected results. You can find the result from the model within the <ModelResponse> tag 
+                and the list of expected results within the <ExpectedResponses> tag. Check if the semantic accuracy is achieved. Produce the output in the format I provided.
+            </PrimaryTask>
+            <ModelResponse>
+                ModelResponse: {ModelResponse}
+            </ModelResponse>
+            <ExpectedResponses>
+                {ExpectedResponses}
+            </ExpectedResponses>
+            <Output>
+                <<OUTPUT (must include ```json at the start of the response)>>
+                <<OUTPUT (must end with ```)>>
+            </Output>
+            <FormatInstructions>
+                {format_instructions}
+            </FormatInstructions>
+        </InstructionStructure>
+        """
+        output_parser = ValidationModelOutputParser().validate_model
+        chain = self._create_chain(validation_model_template, ["ModelResponse", "ExpectedResponses"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        response: ValidationModelOutputParser = chain.invoke(input={"ModelResponse": model_answer, "ExpectedResponses": answers})
+        return response

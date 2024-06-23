@@ -1,3 +1,5 @@
+import pandas as pd
+
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException, status
@@ -42,22 +44,46 @@ def generate_knowledge_graph():
     
     return response
 
-def answer_questions():
+def answer_questions(question: str, answers: list[str]):
     DEGREE = 1
 
-    question = content.all_qas[0]["question"]
-    answers = content.all_qas[0]["answers"]
-
-    target_node_id = llm.detect_target_node(content= content.all_contexts, graphdb_nodes = database.list_nodes_and_properties()).node_id
-    related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
-    print(related_nodes)
-    res = llm.QA_Model(question= question, related_nodes= related_nodes)
-    print(res)
-    while not res.success:
-        DEGREE += 1
-        related_nodes = database.list_n_degree_nodes(node_id = target_node_id, degree_count = DEGREE)
-        res = llm.QA_Model(question= question, related_nodes= related_nodes)
+    target_node_id = llm.detect_target_node(content=content.all_contexts, graphdb_nodes=database.list_nodes_and_properties()).node_id
+    related_nodes = database.list_n_degree_nodes(node_id=target_node_id, degree_count=DEGREE)
+    res = llm.QA_Model(question=question, related_nodes=related_nodes)
     
+    previous_related_nodes = None
+
+    while not res.success:
+        if related_nodes == previous_related_nodes:
+            res.success = False
+            break
+        
+        DEGREE += 1
+        previous_related_nodes = related_nodes
+        related_nodes = database.list_n_degree_nodes(node_id=target_node_id, degree_count=DEGREE)
+        res = llm.QA_Model(question=question, related_nodes=related_nodes)
+        
     return res
 
-answer_questions()
+def llm_based_kg_qa():
+    generate_knowledge_graph()
+    
+    results = []
+    for question in content.all_qas:
+        content_question = question["question"]
+        content_answers = question["answers"]
+        model_answer = answer_questions(question= question, answers= content_answers).answer
+        result = llm.validate_answer(content_answers, model_answer)
+        results.append({
+            "Question": content_question,
+            "ModelResponse": model_answer,
+            "ExpectedResponses": content_answers,
+            "Result": result.result
+        })
+        print(content_question)
+        print(result.result)
+
+    df = pd.DataFrame(results)
+    df.to_csv("/mnt/data/results.csv", index=False)
+        
+llm_based_kg_qa()
