@@ -70,7 +70,7 @@ def answer_questions(question: str, answers: list[str]):
 def llm_based_kg_qa():
     #generate_knowledge_graph()
 
-    random_questions = random.sample(content.all_qas, 100)
+    random_questions = random.sample(content.all_qas, 5)
     
     results = []
     for question in tqdm(random_questions, desc="Processing questions"):
