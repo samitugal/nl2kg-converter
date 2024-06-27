@@ -54,7 +54,6 @@ def answer_questions(question: str, answers: list[str]):
     res = llm.QA_Model(question=question["question"], related_nodes=related_nodes)
     
     previous_related_nodes = None
-    print(question["question"])
     while not res.success:
         if related_nodes == previous_related_nodes:
             res.success = False
@@ -68,7 +67,7 @@ def answer_questions(question: str, answers: list[str]):
     return res
 
 def llm_based_kg_qa():
-    #generate_knowledge_graph()
+    generate_knowledge_graph()
 
     random_questions = random.sample(content.all_qas, 5)
     
