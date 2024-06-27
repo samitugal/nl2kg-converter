@@ -13,38 +13,21 @@ class LLMCallbacks(BaseCallbackHandler):
 
     def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any) -> Any:
         """Run when LLM starts running."""
-        model_info = None
-        
-        if 'kwargs' in serialized:
-            kwargs = serialized['kwargs']
-            if 'model_kwargs' in kwargs:
-                model_kwargs = kwargs['model_kwargs']
-                if 'messages' in model_kwargs:
-                    messages = model_kwargs['messages']
-                    if isinstance(messages, list) and len(messages) > 0:
-                        first_message = messages[0]
-                        if isinstance(first_message, dict) and 'model_info' in first_message:
-                            model_info = first_message['model_info']
-        
+    
         self.model_name = self._extract_model_info(serialized)
         self.starttime = time.time()
 
     def _extract_model_info(self, serialized: Dict[str, Any]) -> str:
         """
-            Extracts LLM Model information from kwargs if exists
+        Extracts LLM Model information from kwargs if exists
         """
-        model_info = None
-        if 'kwargs' in serialized:
-            kwargs = serialized['kwargs']
-            if 'model_kwargs' in kwargs:
-                model_kwargs = kwargs['model_kwargs']
-                if 'messages' in model_kwargs:
-                    messages = model_kwargs['messages']
-                    if isinstance(messages, list) and len(messages) > 0:
-                        first_message = messages[0]
-                        if isinstance(first_message, dict) and 'model_info' in first_message:
-                            model_info = first_message['model_info']
-        
+        model_info = (
+            serialized
+            .get('kwargs', {})
+            .get('model_kwargs', {})
+            .get('messages', [{}])[0]
+            .get('model_info')
+        )
         return model_info if model_info else serialized['name']
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> Any:
