@@ -15,12 +15,14 @@ class LLMBase(LLMAbstractBase):
         self.config = config
         load_dotenv()
 
-    def _create_chain(self, template: str, input_variables: List[str], partial_variables: Dict[str, Any], parser):
+    def _create_chain(self, template: str, input_variables: List[str], partial_variables: Dict[str, Any], parser, model_info: str = None):
         prompt_template = PromptTemplate(
             input_variables=input_variables, 
             template=template, 
             partial_variables=partial_variables
         )
+        if model_info:
+            self.client.model_kwargs["messages"] = [{"model_info": model_info}]
         return prompt_template | self.client | parser
 
     def translate(self, content: str) -> TranslateModelOutput:
@@ -42,7 +44,7 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = TranslateModelOutputParser().translate_parser
-        chain = self._create_chain(translate_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        chain = self._create_chain(translate_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser, "translation model")
         response: TranslateModelOutputParser = chain.invoke(input={"content": content})
         return response 
 
@@ -106,7 +108,7 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = QueryGenerationOutputParser().query_generator_parser
-        chain = self._create_chain(knowledge_graph_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        chain = self._create_chain(knowledge_graph_template, ["content"], {"format_instructions": output_parser.get_format_instructions()}, output_parser, "kg_generation_model")
         response: QueryGenerationOutputParser = chain.invoke(input={"content": self.translate(content).translated_content})
         return self._clean_response(response)
 
@@ -140,7 +142,7 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = NodeDetectionOutputParser().node_detection_parser
-        chain = self._create_chain(target_node_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        chain = self._create_chain(target_node_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser, "node_detection_node")
         response: NodeDetectionOutputParser = chain.invoke(input={"content": content, "context": graphdb_nodes})
         return response
 
@@ -169,7 +171,7 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = QAModelOutputParser().qa_model
-        chain = self._create_chain(qa_model_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        chain = self._create_chain(qa_model_template, ["content", "context"], {"format_instructions": output_parser.get_format_instructions()}, output_parser, "qa_model")
         response: QAModelOutputParser = chain.invoke(input={"content": question, "context": related_nodes})
         return response
 
@@ -196,6 +198,8 @@ class LLMBase(LLMAbstractBase):
         </InstructionStructure>
         """
         output_parser = ValidationModelOutputParser().validate_model
-        chain = self._create_chain(validation_model_template, ["ModelResponse", "ExpectedResponses"], {"format_instructions": output_parser.get_format_instructions()}, output_parser)
+        chain = self._create_chain(validation_model_template, 
+                                    ["ModelResponse", "ExpectedResponses"], 
+                                    {"format_instructions": output_parser.get_format_instructions()}, output_parser, "validation_model")
         response: ValidationModelOutputParser = chain.invoke(input={"ModelResponse": model_answer, "ExpectedResponses": answers})
         return response
