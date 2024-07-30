@@ -26,7 +26,7 @@ class ContentProvider:
             paragraphs.append(Paragraph(context=p['context'], qas=qas))
         return Article(title=data['title'], paragraphs=paragraphs)
 
-    def get_content(self, mock: bool = True) -> Article:
+    def get_content(self, mock: bool = False) -> Article:
         with zipfile.ZipFile(self.path, 'r') as zip_ref:
             zip_ref.extractall('squad_data')
         

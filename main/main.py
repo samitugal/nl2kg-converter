@@ -98,4 +98,4 @@ def llm_based_kg_qa():
     os.makedirs(save_dir, exist_ok=True)
     df.to_csv(os.path.join(save_dir, "results.csv"), index=False)
         
-llm_based_kg_qa()
+generate_knowledge_graph()
